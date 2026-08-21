@@ -3,9 +3,9 @@ from sqlalchemy import (
     Column,
     DateTime,
     Float,
-    String
+    String,
+    text
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base
 
 # PostgreSQL Configuration
@@ -25,15 +25,12 @@ DB_URL = (
     f"{POSTGRES['database']}"
 )
 
-# Database Engine
 engine = create_engine(DB_URL)
 
-# Base Class
 Base = declarative_base()
 
 
 class Metric(Base):
-
     __tablename__ = "metrics"
 
     time = Column(DateTime(timezone=True), primary_key=True)
@@ -42,7 +39,20 @@ class Metric(Base):
     value = Column(Float)
 
 
-# Create table
 if __name__ == "__main__":
+
+    # Create PostgreSQL table
     Base.metadata.create_all(engine)
-    print("Metrics table created successfully")
+    
+    # Convert to TimescaleDB hypertable
+    with engine.connect() as conn:
+        conn.execute(text("""
+            SELECT create_hypertable(
+                'metrics',
+                'time',
+                if_not_exists => TRUE
+            );
+        """))
+        conn.commit()
+
+    print("hypertable created successfully")
