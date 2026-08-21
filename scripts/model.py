@@ -37,9 +37,9 @@ class Metric(Base):
     __tablename__ = "metrics"
 
     time = Column(DateTime(timezone=True), primary_key=True)
-    metric_name = Column(String, primary_key=True)
+    tag_id = Column(String, primary_key=True)
+    metric_name = Column(String)
     value = Column(Float)
-    tags = Column(JSONB)
 
 
 # Create table
